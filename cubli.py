@@ -1,5 +1,6 @@
 import numpy as np
 from integrators import get_integrator
+from control.matlab import *
 
 class Cubli():
     def __init__(self,
@@ -9,7 +10,6 @@ class Cubli():
         '''TODO: Move this out'''    
         self.t = 0 # s; current time
         self.dt = 0.01 # s; timestep
-        self.u = 1
         
         g = 9.8 # m/s^2; gravity
         self.m_b = 0.419 # kg; mass of pendulum body
@@ -22,7 +22,7 @@ class Cubli():
         self.C_w = 0.05 * 10**-3 # kgm^2/s; dynamic friction coefficient of the wheel
         self.K_m = 25.1 * 10**-3 # Nm/A; torque constant of DC motor
         
-        self.A = np.array([[0, 0, 1],
+        self.A = np.array([[0, 1, 0],
                            [((self.m_b * self.l_b + self.m_w * self.l) * g) / (self.I_b + self.m_w * self.l**2), -self.C_b / (self.I_b + self.m_w * self.l**2), self.C_w / (self.I_b + self.m_w * self.l**2)],
                            [(-(self.m_b * self.l_b + self.m_w * self.l) * g) / (self.I_b + self.m_w * self.l**2), self.C_b / (self.I_b + self.m_w * self.l**2), (-self.C_w * (self.I_b + self.I_w + self.m_w * self.l**2)) / (self.I_w * (self.I_b + self.m_w * self.l**2))]])
         self.B = np.array([[0],
@@ -33,16 +33,39 @@ class Cubli():
         self.x = np.array([[theta_b_0], 
                            [theta_b_dot_0], 
                            [theta_w_dot_0]])
+
         self.intg = get_integrator(self.dt, self.eom)
         
+        '''TODO: Place this elsewhere'''
+        omega_w = ((2 - 2**(1/2)) * (self.I_w + self.I_b + self.m_w * self.l**2) / (self.I_w**2) * (self.m_b * self.l_b + self.m_w * self.l) * g)**(1/2)
+                
     def eom(self, t, x, u):
-        self.x = x
-        x_dot = self.A @ self.x + self.B * u
+        x_dot = self.A @ x + self.B * u
+        return x_dot
         
     def update(self):
-        x = self.intg.step(self.t, self.x, self.u)
+        Q = np.array([[0.001, 0, 0],
+                      [0, 0.001, 0],
+                      [0, 0, 1]])
+
+        R = 1
+        K = lqr(self.A, self.B, Q, R)[0]
+        #u = -K @ self.x
+        u = 0
+
+        self.x = self.intg.step(self.t, self.x, u)
+
+        '''Establish surface for Cubli:
+        When the pendulum body is either at -45 degrees or 45 degrees,
+        it is laying on a surface'''
+        if (self.x[0] < -np.pi / 4):
+            self.x[0] = -np.pi / 4
+            self.x[1] = 0
+        elif (self.x[0] > np. pi / 4):
+            self.x[0] = np.pi / 4
+            self.x[1] = 0
+            
         self.t += self.dt
-        self.x = x
             
         
     

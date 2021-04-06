@@ -1,18 +1,48 @@
 from cubli import Cubli
 import numpy as np
 import matplotlib.pyplot as plt
-dt = 0.01
-t_sim = 100
+
+plt.close("all") 
+
+'''TODO: Restyle and fix simulation code'''
+
+dt = 0.001
+t_sim = 20
 t = 0
 
-c = Cubli(np.pi / 4, 0, 15)
-theta_history = []
-t_history = []
+c = Cubli(-np.pi / 4, 0, 0)
+theta_b_history = [] # degrees; list of pendulum body angles
+theta_b_dot_history = [] # RPM; list of pendulum body angular velocities 
+theta_w_dot_history = [] # RPM; list of wheel angular velocities
+
+t_history = [] # s
 
 while t < t_sim:
+    theta_b_history.append(float(c.x[0]) * 180 / np.pi) # convert radians to degrees
+    theta_b_dot_history.append(float(c.x[1]) * 9.549297) # convert radians per second to RPM
+    theta_w_dot_history.append(float(c.x[2]) * 9.549297) # convert radians per second to RPM
     c.update()
-    theta_history.append(c.x[0])
     t_history.append(t)
+    t += dt # increment timestep
 
 plt.figure()
-plt.plot(t_history, theta_history)
+plt.title('Pendulum Body Angle')
+plt.xlabel('Time [s]')
+plt.ylabel('Angle [degrees]')
+plt.ylim(-90, 0)
+plt.plot(t_history, theta_b_history)
+plt.show()
+
+plt.figure()
+plt.title('Pendulum Body Angular Velocity')
+plt.xlabel('Time [s]')
+plt.ylabel('Angular Velocity [RPM]')
+plt.plot(t_history, theta_b_dot_history)
+plt.show()
+
+plt.figure()
+plt.title('Wheel Angular Velocity')
+plt.xlabel('Time [s]')
+plt.ylabel('Angular Velocity [RPM]')
+plt.plot(t_history, theta_w_dot_history)
+plt.show()
