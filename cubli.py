@@ -24,6 +24,9 @@ class Cubli():
         self.C_w = 0.05 * 10**-3 # kgm^2/s; dynamic friction coefficient of the wheel
         self.K_m = 25.1 * 10**-3 # Nm/A; torque constant of DC motor
         
+        self.I_stall = 23.3 # A; Stall current
+        self.omega_w_max = 548.7315162 # rad/s; maximum angular velocity of wheel
+        
         self.A = np.array([[0, 1, 0],
                            [((self.m_b*self.l_b + self.m_w*self.l) * g) / (self.I_b + self.m_w*self.l**2), -self.C_b / (self.I_b + self.m_w*self.l**2), self.C_w / (self.I_b + self.m_w*self.l**2)],
                            [(-(self.m_b*self.l_b + self.m_w*self.l) * g) / (self.I_b + self.m_w*self.l**2), self.C_b / (self.I_b + self.m_w*self.l**2), (-self.C_w * (self.I_b + self.I_w + self.m_w*self.l**2)) / (self.I_w * (self.I_b + self.m_w*self.l**2))]])
@@ -54,19 +57,13 @@ class Cubli():
             
         return x_dot
         
-    def update(self, linear):
-        Q = np.array([[0.001, 0, 0],
-                      [0, 0.001, 0],
-                      [0, 0, 1]])
-        R = 1
-        K = lqr(self.A, self.B, Q, R)[0]
-        u = -K @ self.x
-
+    def update(self, u, linear):
         '''Check for linear/nonlinear dynamics'''
         if linear == True:
             self.x = self.intg.step(self.t, self.x, u, True)
         elif linear == False:
-            x = np.insert(self.x, 0, 1, axis = 0)
+            x = self.x
+            x = np.insert(x, 1, 0, axis = 0)
             x = self.intg.step(self.t, x, u, False)
             theta_b = float(x[0])
             theta_b_dot = float(x[2])
@@ -85,18 +82,17 @@ class Cubli():
             self.x[0] = np.pi / 4
             self.x[1] = 0
             
-        '''Check for saturation'''
-        self.saturate()
+        '''Check for maximum angular velocity of wheel'''
+        if float(self.x[2]) > self.omega_w_max:
+            self.x[2] = self.omega_w_max
+        elif float(self.x[2]) < -self.omega_w_max:
+            self.x[2] = -self.omega_w_max
         
         self.t += self.dt
+
         
-    def saturate(self):
-        limit = 300 # rad/s
             
-        if float(self.x[2]) > limit:
-            self.x[2] = limit
-        elif float(self.x[2]) < -limit:
-            self.x[2] = -limit
+
             
         
     
