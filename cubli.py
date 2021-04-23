@@ -27,7 +27,7 @@ class Cubli():
         self.C_w = 0.05 * 10**-3 # kgm^2/s; dynamic friction coefficient of the wheel
         self.K_m = 25.1 * 10**-3 # Nm/A; torque constant of DC motor
         
-        self.I_stall = 23.3 # A; Stall current
+        self.I = 5 # A; maximum current that can be supplied to the motor by a controller
         self.omega_w_max = 548.7315162 # rad/s; maximum angular velocity of wheel
         
         self.A = np.array([[0, 1, 0],

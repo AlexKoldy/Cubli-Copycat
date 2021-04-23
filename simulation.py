@@ -12,8 +12,8 @@ t = 0
 show_plot = True
 
 '''Create new Cubli object and create controller object for it'''
-c = Cubli(-np.pi / 4 + 0.001, 0, 0, False)
-controller = LQR(c.A, c.B, c.I_stall)
+c = Cubli(-np.pi / 16 + 0.001, 0, 0, False)
+controller = LQR(c.A, c.B, c.I)
 
 '''Establish list of state values, times, and inputs'''
 theta_b_history = [] # degrees; list of pendulum body angles
@@ -31,8 +31,9 @@ t_history.append(t)
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 plt.axis('square')
-ax.set_xlim(-2, 2)
-ax.set_ylim(0, 2)
+plt.axvline(0, linestyle = 'dashed')
+ax.set_xlim(-1.125, 1.125)
+ax.set_ylim(0, 1.5)
 edge_b_1, = ax.plot([0, np.sin(c.x[0] - np.pi / 4)], [0, np.cos(c.x[0] - np.pi / 4)], color = "black")
 edge_b_2, = ax.plot([np.sin(c.x[0] - np.pi / 4), np.sqrt(2) * np.sin(c.x[0])], [np.cos(c.x[0] - np.pi / 4), np.sqrt(2) * np.cos(c.x[0])], color = "black")
 edge_b_3, = ax.plot([-np.cos(c.x[0] + (3 / 4) * np.pi), np.sqrt(2) * np.sin(c.x[0])], [np.sin(c.x[0] + (3 / 4) * np.pi), np.sqrt(2) * np.cos(c.x[0])], color = "black")
@@ -82,12 +83,15 @@ def plot():
     plt.xlabel('Time [s]')
     plt.ylabel('Angular Velocity [RPM]')
     plt.plot(t_history, theta_w_dot_history, label = '$\omega_w$')
-    plt.plot(t_history, u_history, label = 'u')
     plt.legend()
     plt.show()
 
     plt.figure()
-    plt.plot(t_history, u_history, label = 'u')
+    plt.title('Input Current')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Current [A]')
+    plt.plot(t_history[1:], u_history[1:], label = 'u')
+    plt.show()
     
 '''Simulation'''  
 while t < t_sim:
