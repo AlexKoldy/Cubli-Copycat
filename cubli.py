@@ -10,11 +10,10 @@ class Cubli():
                  theta_b_0, # rad; tilt angle of the pendulum body
                  theta_b_dot_0, # rad/s; angular rate of the pendulum body
                  theta_w_dot_0, # rad/s; angular rate of the momentum wheel with respect to the body
-                 linear):
-        '''TODO: Move this out'''    
-        self.t = 0 # s; current time
+                 linear): # choose whether or not simulation follows linear dynamics
         self.dt = 0.01 # s; timestep
         
+        # linear dynamics flag (non-linear dynamics follow actual system dynamics)
         self.linear = linear
 
         self.m_b = 0.419 # kg; mass of pendulum body
@@ -27,9 +26,10 @@ class Cubli():
         self.C_w = 0.05 * 10**-3 # kgm^2/s; dynamic friction coefficient of the wheel
         self.K_m = 25.1 * 10**-3 # Nm/A; torque constant of DC motor
         
-        self.I = 5 # A; maximum current that can be supplied to the motor by a controller
+        self.i = 5 # A; maximum current that can be supplied to the motor by a controller
         self.omega_w_max = 548.7315162 # rad/s; maximum angular velocity of wheel
         
+        # Linear dynamics A & B matrices for state-space
         self.A = np.array([[0, 1, 0],
                            [((self.m_b*self.l_b + self.m_w*self.l) * g) / (self.I_b + self.m_w*self.l**2), -self.C_b / (self.I_b + self.m_w*self.l**2), self.C_w / (self.I_b + self.m_w*self.l**2)],
                            [(-(self.m_b*self.l_b + self.m_w*self.l) * g) / (self.I_b + self.m_w*self.l**2), self.C_b / (self.I_b + self.m_w*self.l**2), (-self.C_w * (self.I_b + self.I_w + self.m_w*self.l**2)) / (self.I_w * (self.I_b + self.m_w*self.l**2))]])
@@ -44,9 +44,11 @@ class Cubli():
 
         self.intg = get_integrator(self.dt, self.eom)
         
-        '''TODO: Place this elsewhere'''
-        omega_w = ((2 - 2**(1/2)) * (self.I_w + self.I_b + self.m_w * self.l**2) / (self.I_w**2) * (self.m_b * self.l_b + self.m_w * self.l) * g)**(1/2)
-                
+
+        self.omega_w_jump = ((2 - 2**(1/2)) * (self.I_w + self.I_b + self.m_w * self.l**2) / (self.I_w**2) * (self.m_b * self.l_b + self.m_w * self.l) * g)**(1/2) # rad/s; angular momentum wheel needed to perform jump-up
+        self.jumped = False # flag to check whether or not the cubli has attempted a jump-up
+    
+    '''Equation of motion: x_dot = f(t, x, u)'''
     def eom(self, t, x, u):
         '''Check for linear/nonlinear dynamics'''
         if self.linear == True:
@@ -59,8 +61,9 @@ class Cubli():
                               [float(theta_w_ddot)]])
             
         return x_dot
-        
-    def update(self, t, u):
+     
+    '''Updates the state of the system given a specific input (typically from a controller)'''
+    def update(self, t, u):        
         self.x = self.intg.step(t, self.x, u)
 
         '''Establish surface for Cubli:
@@ -78,6 +81,19 @@ class Cubli():
             self.x[2] = self.omega_w_max
         elif float(self.x[2]) < -self.omega_w_max:
             self.x[2] = -self.omega_w_max
+        
+    '''Shoots the cubli up by using conservation of angular momentum'''
+    def jump(self):
+        if abs(float(self.x[2])) >= self.omega_w_jump:
+            self.x[0] = (-np.pi/4) + 0.00001
+            self.x[1] = self.I_w * abs(float(self.x[2])) / (self.I_b + self.I_w + self.m_w*self.l**2)
+            self.x[2] = 0
+            self.jumped = True
+                
+        
+
+        
+        
 
 
         

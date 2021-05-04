@@ -6,14 +6,17 @@ import matplotlib.animation as animation
 
 plt.close("all") 
 
-dt = 0.01
-t_sim = 10
-t = 0
+dt = 0.01 # s
+t_sim = 5 # s
+t = 0 # s
 show_plot = True
+u = 0
+dt_controller = dt * 9 # s
+t_delay = 0 # s
 
 '''Create new Cubli object and create controller object for it'''
-c = Cubli(-np.pi / 16 + 0.001, 0, 0, False)
-controller = LQR(c.A, c.B, c.I)
+c = Cubli(-np.pi / 4, 0, 0, False)
+controller = LQR(c.A, c.B, c.i)
 
 '''Establish list of state values, times, and inputs'''
 theta_b_history = [] # degrees; list of pendulum body angles
@@ -43,15 +46,32 @@ edge_b_4, = ax.plot([0, -np.cos(c.x[0] + (3 / 4) * np.pi)], [0, np.sin(c.x[0] + 
     - Stores list of states and inputs
     - Animates the 2D simulation'''    
 def update():
-    u = controller.update(c.x)
-    # Delay
-    c.update(t, u)
+    '''Replicate hardware delay:
+        system moves with timestep dt, but hardware limitation prevent controller from updating that fast'''
+    global t_delay
+    global u
+    if t_delay == dt_controller:
+        u = controller.update(c.x)
+        t_delay = 0
+    else:
+        t_delay += dt
+        
+    '''Check if Cubli has jumped up:
+        if not, begin jump sequence'''
+    if c.jumped == False:
+        c.jump()
+        c.update(t, u)
+    else:
+        c.update(t, u)
+    
+    ''''Append lists for plotting'''
     u_history.append(u)
     theta_b_history.append(float(c.x[0]) * 180 / np.pi) # convert radians to degrees
     theta_b_dot_history.append(float(c.x[1]) * 9.549297) # convert radians per second to RPM
     theta_w_dot_history.append(float(c.x[2]) * 9.549297) # convert radians per second to RPM
     t_history.append(t)
     
+    '''Animate Cubli in 2D'''
     edge_b_1.set_xdata([0, np.sin(c.x[0] - np.pi / 4)])
     edge_b_1.set_ydata([0, np.cos(c.x[0] - np.pi / 4)])
     edge_b_2.set_xdata([np.sin(c.x[0] - np.pi / 4), np.sqrt(2) * np.sin(c.x[0])])
@@ -102,23 +122,7 @@ plt.close("all")
 if (show_plot == True):
     plot()
 
- 
-'''
-fig, (ax1, ax2, ax3) = plt.subplots(3)
-ax1.set_title('Pendulum Body Angle')
-ax1.set(xlabel = 'Time [s]', ylabel = r'$\theta$ [degrees]')
-ax1.plot(t_history, theta_b_history)
 
-ax2.set_title('Pendulum Body Angular Velocity')
-ax2.set(xlabel = 'Time [s]', ylabel = '$\omega$ [RPM]')
-ax2.plot(t_history, theta_b_dot_history)
-
-ax3.set_title('Wheel Angular Velocity')
-ax3.set(xlabel = 'Time [s]', ylabel = '$\omega$ [RPM]')
-ax3.plot(t_history, theta_w_dot_history)
-
-plt.tight_layout()
-'''
 
     
     
