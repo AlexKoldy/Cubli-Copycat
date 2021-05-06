@@ -37,7 +37,6 @@ class RungeKutta4(Integrator):
         k4 = self.f(t+    self.dt, x+    self.dt*k3, u)
         return x + self.dt * (k1 + 2*k2 + 2*k3 + k4) / 6
 
-
 class AdamsBashforth2(Integrator):
     def __init__(self, dt, f):
         super().__init__(dt, f)
