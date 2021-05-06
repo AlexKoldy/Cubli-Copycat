@@ -7,11 +7,11 @@ import matplotlib.animation as animation
 plt.close("all") 
 
 dt = 0.01 # s
-t_sim = 5 # s
+t_sim = 10 # s
 t = 0 # s
 show_plot = True
 u = 0
-dt_controller = dt * 9 # s
+dt_controller = dt * 2 # s
 t_delay = 0 # s
 
 '''Create new Cubli object and create controller object for it'''
