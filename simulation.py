@@ -12,6 +12,7 @@ show_plot = True
 u = 0
 #dt_controller = dt * 2 # s
 t_delay = 0 # s
+p = 0
 
 '''Create new Cubli object and create controller object for it'''
 c = Cubli(-np.pi / 4, 0, 0, True)
@@ -53,7 +54,6 @@ def update(cubli):
     u = cubli.u
     cubli.update(t)
 
-    
     ''''Append lists for plotting'''
     u_history.append(u)
     theta_b_history.append(float(c.x[0]) * 180 / np.pi) # convert radians to degrees
@@ -81,9 +81,10 @@ def plot():
     plt.title('Pendulum Body Angle')
     plt.xlabel('Time [s]')
     plt.ylabel('Angle [degrees]')
-    plt.plot(t_history, theta_b_linear_history, label = 'Linear')
+    #plt.plot(t_history, theta_b_linear_history, label = 'Linear')
     plt.plot(t_history, theta_b_nonlinear_history, label = 'Non-linear')
     plt.plot(t_history[:-1], theta_b_e_history, label = 'Estimation')
+    plt.axvline(t_history[p], color = "black", label = 'Controller/Estimator Turned on')
     plt.legend()
     plt.show()
 
@@ -91,7 +92,7 @@ def plot():
     plt.title('Pendulum Body Angular Velocity')
     plt.xlabel('Time [s]')
     plt.ylabel('Angular Velocity [RPM]')
-    plt.plot(t_history, theta_b_dot_linear_history, label = 'Linear')
+    #plt.plot(t_history, theta_b_dot_linear_history, label = 'Linear')
     plt.plot(t_history, theta_b_dot_nonlinear_history, label = 'Non-linear')
     plt.plot(t_history[:-1], theta_b_dot_e_history, label = 'Estimation')
     plt.legend()
@@ -101,7 +102,7 @@ def plot():
     plt.title('Wheel Angular Velocity')
     plt.xlabel('Time [s]')
     plt.ylabel('Angular Velocity [RPM]')
-    plt.plot(t_history, theta_w_dot_linear_history, label = 'Linear')
+    #plt.plot(t_history, theta_w_dot_linear_history, label = 'Linear')
     plt.plot(t_history, theta_w_dot_nonlinear_history, label = 'Non-linear')
     plt.plot(t_history[:-1], theta_w_dot_e_history, label = 'Estimation')
     plt.legend()
@@ -111,15 +112,12 @@ def plot():
     plt.title('Input Current')
     plt.xlabel('Time [s]')
     plt.ylabel('Current [A]')
-    plt.plot(t_history[1:], u_linear_history[1:], label = 'Linear')
+    #plt.plot(t_history[1:], u_linear_history[1:], label = 'Linear')
     plt.plot(t_history[1:], u_nonlinear_history[1:], label = 'Non-linear')
     plt.legend()
     plt.show()
     
-    plt.figure()
-    plt.plot(t_history[:-1], theta_b_e_history, label = 'Estimation')
-    plt.plot(t_history[:-1], theta_b_dot_e_history, label = 'Estimation')
-    plt.show()
+
     
 '''Simulation
     - Run once with linear dynamics
@@ -155,6 +153,7 @@ t_history.append(t)
 while t < t_sim:
     update(c)
     t += dt
+p = c.p
 theta_b_nonlinear_history = theta_b_history
 theta_b_dot_nonlinear_history = theta_b_dot_history
 theta_w_dot_nonlinear_history = theta_w_dot_history
