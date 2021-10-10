@@ -3,13 +3,40 @@
   <link name="base_link">
     <visual>
       <geometry>
-        <box size="1 1 1"/>
+        <mesh filename="mesh/body.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <box size="1 1 1"/>
+        <mesh filename="mesh/body.stl"/>
       </geometry>
-	</collision>
+	  </collision>
   </link>
+
+  <link name="flywheel_pitch">
+    <visual>
+      <geometry>
+        <mesh filename="mesh/flywheel.stl"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.06 0 0"/>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="mesh/flywheel.stl"/>
+      </geometry>
+	  </collision>
+  </link>
+
+  <joint name="flywheel_pitch_motor" type="revolute">
+    <limit effort="100" velocity="1000.0"/>
+    <parent link="base_link"/>
+    <child link="flywheel_pitch"/>
+  </joint>
+
+
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+
 </robot>

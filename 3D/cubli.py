@@ -1,9 +1,13 @@
 import numpy as np
+from integrators import get_integrator
 
 class Cubli():
 	def __init__(self):
 		'''URDF path for simulation'''
 		self.urdf_path = 'urdf/cubli.urdf'
+
+		'''Robot name'''
+		self.name = 'Cubli'
 
 		'''Robot state'''
 		self.q = np.array([[0], # housing yaw [rad]
@@ -22,6 +26,10 @@ class Cubli():
 		self.m_w = [0, 0, 0] # masses of each flywheel [kg]
 		self.Theta_h = np.zeros((3, 3)) # housing inertia tensor [kg-m^2]
 		self.Theta_w = [np.zeros((3, 3)), np.zeros((3, 3)), np.zeros((3, 3))] # inertia tensors of each wheel [kg-m^2]
+
+		'''Control & simulation parameters'''
+		self.dt = 1/100
+		self.intg = get_integrator(self.dt, self.f)
 
 	'''
 	Equation of motion:
@@ -59,27 +67,8 @@ class Cubli():
 						  [omega_w_dot[0]],
 						  [omega_w_dot[1]],
 						  [omega_w_dot[2]]
-		])
+		]).flatten()
 		return q_dot
-
-
-
-
-# TODO: Move simulation stuff outa here!
-import pybullet as p
-import time
-import pybullet_data
-
-physics_client = p.connect(p.GUI)
-p.setAdditionalSearchPath(pybullet_data.getDataPath())
-#p.setGravity(0, 0, -9.8)
-plane_id = p.loadURDF("plane.urdf")
-cubli_pos_0 = [0.5, 0.5, 0.5]
-cubli_orien_0 = p.getQuaternionFromEuler([0, 0, 0])
-box_id = p.loadURDF("urdf/cubli.urdf", cubli_pos_0, cubli_orien_0)
-for i in range (10000):
-	p.stepSimulation()
-	time.sleep(1.0/240.0)
-cubli_pos_0, cubli_orien_0 = p.getBasePositionAndOrientation(box_id)
-print(cubli_pos_0, cubli_orien_0)
-p.disconnect()
+	
+	def update(self, t):
+		self.q = self.intg.step(t, self.q, self.u)
