@@ -13,12 +13,12 @@
 	  </collision>
   </link>
 
-  <link name="flywheel_pitch">
+  <link name="flywheel_yaw">
     <visual>
       <geometry>
         <mesh filename="mesh/flywheel.stl"/>
       </geometry>
-      <origin rpy="0 1.57075 0" xyz="0.06 0 0"/>
+      <origin rpy="0 1.57075 0" xyz="0.065 0 0"/>
       <material name="blue"/>
     </visual>
     <collision>
@@ -28,15 +28,19 @@
 	  </collision>
   </link>
 
-  <joint name="flywheel_pitch_motor" type="revolute">
+  <joint name="flywheel_yaw_motor" type="revolute">
+    <axis xyz="1 0 0"/>
     <limit effort="100" velocity="1000.0"/>
     <parent link="base_link"/>
-    <child link="flywheel_pitch"/>
+    <child link="flywheel_yaw"/>
   </joint>
-
 
   <material name="blue">
     <color rgba="0 0 0.8 1"/>
+  </material>
+
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
   </material>
 
 </robot>
