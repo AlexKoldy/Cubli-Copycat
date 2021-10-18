@@ -19,7 +19,7 @@ class Simulator():
 		robot_orien_0 = p.getQuaternionFromEuler(list(robot.q[:3]))
 		robot_id = p.loadURDF(robot.urdf_path, robot_pos_0, robot_orien_0)
 		self.robot.id = robot_id
-		print(self.robot.name + 'robot created!')
+		print(self.robot.name + ' robot created!')
 
 		'''Simulation parameters'''
 		self.t = 0 # time [s]

@@ -9,11 +9,11 @@ class LQR():
 		self.Q = self.tune_Q([1, 1, 1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01], Q_shape)
 		self.R = 1
 			
-	def tune_Q(parameters, shape):
+	def tune_Q(self, parameters, shape):
 		if len(parameters) != shape[0]:
 			print("Error: number of parameters does not match shape of A matrix")
 		else:
-			Q = np.eye(shape)
+			Q = np.eye(shape[0])
 			i = 0
 
 			for row in Q:
